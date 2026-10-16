@@ -122,6 +122,14 @@ ktlint {
     version.set("1.8.0")
 }
 
+// ktlint's own tool classpath carries logback 1.3.x, a line that no longer gets fixes; advisories against it are fixed in
+// 1.5. It is build tooling only, so keeping it on the patched line costs nothing at run time.
+configurations.named("ktlint") {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "ch.qos.logback") useVersion("1.5.38")
+    }
+}
+
 // The bill of materials of what ships: the runtime classpath only (no test or build tooling), as JSON. CI scans it for
 // known vulnerabilities and keeps it as an artifact.
 tasks.cyclonedxDirectBom {
