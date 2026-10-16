@@ -29,5 +29,8 @@ jobs:
       - uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           languages: java-kotlin
-          build-mode: none
+          # Kotlin has no "none" mode: the analysis has to watch the compiler run.
+          build-mode: manual
+      - name: Compile for the analysis
+        run: ./gradlew clean compileKotlin compileTestKotlin --no-daemon --no-build-cache --rerun-tasks
       - uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
