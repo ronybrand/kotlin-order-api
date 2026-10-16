@@ -58,7 +58,7 @@ Como o Gradle não entrega o grafo ao GitHub sozinho, o grafo resolvido é envia
 
 ### Estado da main
 
-Na consulta de hoje (16/10/2026), os três workflows do último push na `main` (CI, CodeQL, Supply chain) estão verdes. A execução vermelha que apareceu é um job do **Dependabot** (`gradle ... logback-core - Update #1631716015`), cujo log exige acesso de escrita ao repositório e não foi lido; a causa não foi investigada. Não é a `main`.
+Na consulta de hoje (16/10/2026), os três workflows do último push na `main` (CI, CodeQL, Supply chain) estão verdes. A execução vermelha que apareceu é um job do **Dependabot** (`gradle ... logback-core - Update #1631716015`), que terminou com `security_update_dependency_not_found`: o `logback-core` vinha só pelo classpath do ktlint (dependência transitiva de ferramenta de build) e o Dependabot só atualiza dependências diretas. O commit que fixou essa linha do logback é posterior a essa execução, e não há alertas abertos. Não é a `main`.
 
 ## 9. Trade-offs
 
