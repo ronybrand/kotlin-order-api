@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.cyclonedx)
     application
 }
 
@@ -106,6 +107,14 @@ tasks.named("check") {
 
 ktlint {
     version.set("1.8.0")
+}
+
+// The bill of materials of what ships: the runtime classpath only (no test or build tooling), as JSON. CI scans it for
+// known vulnerabilities and keeps it as an artifact.
+tasks.cyclonedxDirectBom {
+    includeConfigs.set(listOf("runtimeClasspath"))
+    projectType.set(org.cyclonedx.model.Component.Type.APPLICATION)
+    jsonOutput.set(layout.buildDirectory.file("reports/sbom/bom.json"))
 }
 
 detekt {

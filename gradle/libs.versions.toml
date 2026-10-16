@@ -19,6 +19,7 @@ greenmail = "2.1.14"
 kover = "0.9.11"
 ktlintPlugin = "14.2.0"
 detekt = "2.0.0-alpha.6"
+cyclonedx = "3.5.1"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
@@ -53,3 +54,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPlugin" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
+cyclonedx = { id = "org.cyclonedx.bom", version.ref = "cyclonedx" }

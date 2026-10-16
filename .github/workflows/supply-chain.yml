@@ -1,0 +1,43 @@
+name: Supply chain
+
+# The Go implementation runs govulncheck. The JVM equivalent here is a bill of materials of what actually ships (the
+# runtime classpath, resolved by Gradle, transitive libraries included) scanned for known vulnerabilities. It runs on
+# every change and weekly: a new CVE in a dependency we already use shows up without any pull request.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 7 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  sbom-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      - name: Generate the SBOM
+        run: ./gradlew cyclonedxDirectBom --no-daemon
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom
+          path: build/reports/sbom/bom.json
+          retention-days: 30
+      # HIGH/CRITICAL findings with a fix available fail the run; unfixed ones are noise nobody can act on yet.
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: sbom
+          scan-ref: build/reports/sbom/bom.json
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
