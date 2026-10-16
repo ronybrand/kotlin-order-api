@@ -1,0 +1,12 @@
+.git
+.github
+.gradle
+.kotlin
+.idea
+build
+out
+keys
+docs
+*.md
+src/test
+src/integrationTest
