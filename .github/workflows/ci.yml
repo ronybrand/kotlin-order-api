@@ -72,3 +72,18 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
+
+  # Everything above checks the pieces. This starts the real stack from docker-compose.yml (PostgreSQL, RabbitMQ,
+  # Mailpit, the API and the worker), signs tokens like the issuer would, and follows one order from creation to
+  # the e-mail that confirming it sends: the only check that exercises both processes inside their containers.
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: End-to-end smoke test
+        run: bash scripts/smoke.sh
+
