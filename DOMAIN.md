@@ -17,6 +17,9 @@ onde esta implementação acrescenta ou escolhe diferente.
 | Lock otimista (`version`) | `persistence/PgCustomers.kt`, `persistence/PgOrders.kt` |
 | Busca, filtros e limites | `app/Search.kt`, `persistence/SearchPlan.kt`, `persistence/SearchSql.kt` |
 | Códigos de erro | `error/AppException.kt` |
+| Retry, DLQ e deduplicação das notificações | `messaging/Processor.kt`, `messaging/DeliveryHandler.kt` |
+| Contrato HTTP e acesso por rota | `http/Endpoints.kt`, `api/openapi.yaml` |
+| Verificação de JWT e papéis | `auth/JwtVerifier.kt` |
 
 ## Diferenças em relação à especificação
 
@@ -26,4 +29,5 @@ onde esta implementação acrescenta ou escolhe diferente.
 - **Agregados imutáveis**: cada operação devolve o novo estado e deixa o original intacto; uma regra violada nunca deixa um pedido pela metade.
 - **Campos pesquisáveis**: `customers` aceita `id, name, tax_id, passport_number, email, version, created_at, updated_at, created_by, updated_by`; `orders` aceita `id, customer_id, status, version, created_at, updated_at, created_by, updated_by`. Colunas de exclusão lógica não são pesquisáveis nem ordenáveis. Um teste compara a lista com as colunas do schema real.
 - **Total do pedido** tem sempre duas casas (`BigDecimal`), nunca ponto flutuante.
-- **Notificação**: publicada depois do commit, sem outbox (ADR 0003).
+- **Notificação**: publicada depois do commit, sem outbox (ADR 0003). O valor do evento viaja como texto (`"total_amount": "10.30"`), para que nenhum consumidor o leia como ponto flutuante.
+- **Catálogo ampliado, como no `go-order-api`**: `VALIDATION-09` (limite de itens), `VALIDATION-12` (corpo grande demais, 413), `CONFLICT-04` (violação de integridade do banco), `AUTH-01` (401) e `AUTH-02` (403).
