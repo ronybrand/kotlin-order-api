@@ -19,9 +19,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class RecordingPublisher(
-    private val failure: Exception? = null,
-) : EventPublisher {
+class RecordingPublisher(private val failure: Exception? = null) : EventPublisher {
     val events = mutableListOf<OrderStatusChanged>()
 
     override fun publishStatusChanged(event: OrderStatusChanged) {

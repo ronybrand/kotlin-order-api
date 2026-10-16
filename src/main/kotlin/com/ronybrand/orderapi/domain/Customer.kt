@@ -17,12 +17,7 @@ private val TAX_ID_PATTERN = Regex("[A-Za-z0-9./-]{5,20}")
 private val PASSPORT_PATTERN = Regex("[A-Z0-9]{6,9}")
 
 /** The data a client supplies to create or replace a customer. */
-data class CustomerInput(
-    val name: String,
-    val taxId: String,
-    val passportNumber: String?,
-    val email: String,
-)
+data class CustomerInput(val name: String, val taxId: String, val passportNumber: String?, val email: String)
 
 /**
  * A registered customer. The tax id, passport number and e-mail are personal data: they are never logged

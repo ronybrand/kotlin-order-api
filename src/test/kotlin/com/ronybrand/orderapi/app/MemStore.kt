@@ -62,10 +62,7 @@ class MemStore : Store {
     }
 }
 
-private class MemCustomers(
-    private val store: MemStore,
-    private val work: MemData?,
-) : CustomerRepository {
+private class MemCustomers(private val store: MemStore, private val work: MemData?) : CustomerRepository {
     private val data get() = work ?: store.data
 
     private fun notFound(id: UUID) =
@@ -115,7 +112,7 @@ private class MemCustomers(
                 updatedAt = at,
                 updatedBy = actor,
                 version =
-                    stored.version + 1,
+                stored.version + 1,
             )
     }
 
@@ -138,10 +135,7 @@ private class MemCustomers(
     }
 }
 
-private class MemOrders(
-    private val store: MemStore,
-    private val work: MemData?,
-) : OrderRepository {
+private class MemOrders(private val store: MemStore, private val work: MemData?) : OrderRepository {
     private val data get() = work ?: store.data
 
     private fun notFound(id: UUID) = AppException.notFound(Codes.ORDER_NOT_FOUND, "order not found", mapOf("id" to id))
@@ -180,7 +174,7 @@ private class MemOrders(
                 updatedAt = at,
                 updatedBy = actor,
                 version =
-                    stored.version + 1,
+                stored.version + 1,
             )
     }
 

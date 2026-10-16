@@ -79,10 +79,7 @@ interface OrderRepository {
 }
 
 /** The set of repositories bound to one connection or one transaction. */
-data class Repositories(
-    val customers: CustomerRepository,
-    val orders: OrderRepository,
-)
+data class Repositories(val customers: CustomerRepository, val orders: OrderRepository)
 
 /** Gives the use cases their repositories, either directly or inside a transaction. */
 interface Store {

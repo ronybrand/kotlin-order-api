@@ -12,10 +12,7 @@ import java.util.UUID
  * The customer use cases. Authorization (who may call what) is decided by the HTTP layer; the rules here are
  * the ones that hold for every caller.
  */
-class CustomerService(
-    private val store: Store,
-    private val clock: Clock = Clock.systemUTC(),
-) {
+class CustomerService(private val store: Store, private val clock: Clock = Clock.systemUTC()) {
     private val log = LoggerFactory.getLogger(CustomerService::class.java)
 
     /** Registers a customer, rejecting a duplicate tax id (CONFLICT-01) or passport (CONFLICT-02). */

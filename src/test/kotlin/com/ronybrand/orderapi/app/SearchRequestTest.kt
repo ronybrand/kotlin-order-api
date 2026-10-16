@@ -31,7 +31,7 @@ class SearchRequestTest {
                     SearchRequest(
                         size = 10,
                         filters =
-                            mapOf("name" to listOf(Condition("in", List(MAX_IN_VALUES + 1) { "x" }))),
+                        mapOf("name" to listOf(Condition("in", List(MAX_IN_VALUES + 1) { "x" }))),
                     ),
             )
 

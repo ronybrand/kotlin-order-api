@@ -12,10 +12,7 @@ const val MAX_IN_VALUES = 100
 const val MAX_FILTER_VALUE_LENGTH = 200
 
 /** One predicate on a field, e.g. `gte` with the value 10. An empty [op] means `eq`. */
-data class Condition(
-    val op: String = "",
-    val value: Any? = null,
-)
+data class Condition(val op: String = "", val value: Any? = null)
 
 /**
  * The filter, sort and page of a search. [page] is 0-based; [sort] is a field name with a `-` prefix for
@@ -74,9 +71,4 @@ data class SearchRequest(
 }
 
 /** One page of results plus the total number of matches. */
-data class Page<T>(
-    val items: List<T>,
-    val total: Int,
-    val page: Int,
-    val size: Int,
-)
+data class Page<T>(val items: List<T>, val total: Int, val page: Int, val size: Int)

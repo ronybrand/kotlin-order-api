@@ -31,11 +31,7 @@ data class Item(
 }
 
 /** The data a client supplies for a new item. */
-data class ItemInput(
-    val description: String,
-    val unitPrice: BigDecimal,
-    val quantity: Int,
-) {
+data class ItemInput(val description: String, val unitPrice: BigDecimal, val quantity: Int) {
     internal fun validate() {
         if (description.isBlank()) throw AppException.invalidField("description", "description must not be blank")
         if (description.codePointCount(0, description.length) > MAX_ITEM_DESCRIPTION) {
@@ -70,10 +66,7 @@ private fun validateQuantity(quantity: Int) {
 }
 
 /** The result of a status transition: the order after it and the status it had before. */
-data class StatusChange(
-    val order: Order,
-    val previous: OrderStatus,
-)
+data class StatusChange(val order: Order, val previous: OrderStatus)
 
 /**
  * The aggregate root: it owns its items and keeps the total consistent with them. It is immutable; every
