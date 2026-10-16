@@ -25,11 +25,19 @@ kotlin {
 }
 
 application {
-    mainClass.set("com.ronybrand.orderapi.ApiMainKt")
+    mainClass.set("com.ronybrand.orderapi.ApiMain")
 }
 
 repositories {
     mavenCentral()
+}
+
+// The notification worker ships in the same artifact as the API; `./gradlew runWorker` starts it locally.
+tasks.register<JavaExec>("runWorker") {
+    group = "application"
+    description = "Runs the notification worker (needs BROKER_URL and SMTP_HOST/SMTP_FROM)."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.ronybrand.orderapi.WorkerMain")
 }
 
 dependencies {
@@ -71,6 +79,7 @@ testing {
                 implementation(libs.kotlin.test.junit5)
                 implementation(libs.ktor.server.test.host)
                 implementation(libs.embedded.postgres)
+                implementation(libs.greenmail)
                 implementation(libs.testcontainers.rabbitmq)
                 implementation(libs.testcontainers.junit)
                 implementation(libs.exposed.core)
@@ -102,7 +111,7 @@ kover {
     reports {
         filters.excludes {
             // Process entry points only wire the pieces together; the integration tests exercise them.
-            classes("com.ronybrand.orderapi.ApiMainKt", "com.ronybrand.orderapi.WorkerMainKt")
+            classes("com.ronybrand.orderapi.ApiMain", "com.ronybrand.orderapi.WorkerMain")
         }
         verify {
             rule {
