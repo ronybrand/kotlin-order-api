@@ -18,9 +18,12 @@ private const val TIMEOUT_MILLIS = 5_000
 private const val RECONNECT_DELAY_MILLIS = 5_000L
 private const val PERSISTENT = 2
 
-private fun connectionFactory(url: String) =
+internal fun connectionFactory(url: String) =
     ConnectionFactory().apply {
         setUri(url)
+        // amqp://host/ is the default vhost "/" for every other client, and the URL of the compose file; the Java client
+        // reads it as the empty vhost, which no broker has, and the broker closes the connection ("vhost  not found").
+        if (virtualHost.isEmpty()) virtualHost = "/"
         connectionTimeout = TIMEOUT_MILLIS
         handshakeTimeout = TIMEOUT_MILLIS
         // The consumer reconnects by itself with its own policy; hidden recovery would reopen channels behind its back.
