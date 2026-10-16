@@ -15,6 +15,13 @@ kotlin {
         // A warning that is not fixed is a warning nobody reads.
         allWarningsAsErrors.set(true)
     }
+    target {
+        // The integration tests check internals too (the search whitelist against the real schema).
+        val main = compilations.getByName("main")
+        compilations.configureEach {
+            if (name == "integrationTest") associateWith(main)
+        }
+    }
 }
 
 application {
@@ -41,7 +48,7 @@ dependencies {
     implementation(libs.flyway.core)
     runtimeOnly(libs.flyway.postgresql)
     implementation(libs.hikari)
-    runtimeOnly(libs.postgresql)
+    implementation(libs.postgresql)
     implementation(libs.java.jwt)
     implementation(libs.amqp.client)
     implementation(libs.angus.mail)
@@ -54,11 +61,11 @@ dependencies {
 testing {
     suites {
         // Unit and HTTP tests: no database, no broker, no network. This is what the coverage floor measures.
-        val test by getting(JvmTestSuite::class) {
+        named<JvmTestSuite>("test") {
             useJUnitJupiter(libs.versions.junit)
         }
         // Needs a real PostgreSQL (embedded, downloaded once) and, for the broker test, a Docker daemon.
-        val integrationTest by registering(JvmTestSuite::class) {
+        register<JvmTestSuite>("integrationTest") {
             useJUnitJupiter(libs.versions.junit)
             dependencies {
                 implementation(project())
@@ -77,7 +84,7 @@ testing {
             }
             targets.all {
                 testTask.configure {
-                    shouldRunAfter(test)
+                    shouldRunAfter(tasks.named("test"))
                 }
             }
         }
