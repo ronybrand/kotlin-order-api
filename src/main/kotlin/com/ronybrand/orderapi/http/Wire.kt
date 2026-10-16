@@ -175,7 +175,7 @@ internal fun parseSearchBody(text: String): SearchRequest {
     val root =
         try {
             WireJson.parseToJsonElement(text)
-        } catch (e: SerializationException) {
+        } catch (_: SerializationException) {
             bad("request body is not valid JSON")
         } as? JsonObject ?: bad("request body must be a JSON object")
     if (!SEARCH_KEYS.containsAll(root.keys)) bad("request body has unknown fields")
@@ -232,7 +232,7 @@ private fun numberOrBoolean(primitive: JsonPrimitive): Any =
     primitive.content.toBooleanStrictOrNull()
         ?: try {
             BigDecimal(primitive.content)
-        } catch (e: NumberFormatException) {
+        } catch (_: NumberFormatException) {
             bad("a filter value is not valid")
         }
 

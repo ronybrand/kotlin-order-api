@@ -18,6 +18,7 @@ snakeyaml = "2.7"
 greenmail = "2.1.14"
 kover = "0.9.11"
 ktlintPlugin = "14.2.0"
+detekt = "2.0.0-alpha.6"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
@@ -51,3 +52,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPlugin" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }

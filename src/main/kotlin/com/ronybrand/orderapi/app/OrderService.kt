@@ -1,5 +1,6 @@
 package com.ronybrand.orderapi.app
 
+import com.ronybrand.orderapi.domain.Customer
 import com.ronybrand.orderapi.domain.ItemInput
 import com.ronybrand.orderapi.domain.Order
 import com.ronybrand.orderapi.domain.OrderStatus
@@ -131,13 +132,7 @@ class OrderService(
         previous: OrderStatus,
     ) {
         val publisher = publisher ?: return
-        val customer =
-            try {
-                store.repos().customers.get(order.customerId)
-            } catch (e: AppException) {
-                log.error("could not load the customer to announce the status change of order {}: {}", order.id, e.code)
-                return
-            }
+        val customer = customerToNotify(order) ?: return
         if (customer.email.isEmpty()) return
         val event =
             OrderStatusChanged(
@@ -149,11 +144,27 @@ class OrderService(
                 totalAmount = order.total,
                 changedAt = clock.instant(),
             )
+        publishBestEffort(publisher, event)
+    }
+
+    private fun customerToNotify(order: Order): Customer? =
+        try {
+            store.repos().customers.get(order.customerId)
+        } catch (e: AppException) {
+            log.error("could not load the customer to announce the status change of order {}: {}", order.id, e.code)
+            null
+        }
+
+    // Best effort by design (ADR 0003): whatever the broker client throws, the transition already happened and must not
+    // fail. The exception is logged by class, not by message, because a driver message can quote the payload.
+    @Suppress("TooGenericExceptionCaught")
+    private fun publishBestEffort(
+        publisher: EventPublisher,
+        event: OrderStatusChanged,
+    ) {
         try {
             publisher.publishStatusChanged(event)
         } catch (e: Exception) {
-            // The event's toString carries no personal data; the exception is logged by class, not by message, because
-            // a driver message can quote the payload.
             log.error("failed to publish {}: {}", event, e.javaClass.simpleName)
         }
     }

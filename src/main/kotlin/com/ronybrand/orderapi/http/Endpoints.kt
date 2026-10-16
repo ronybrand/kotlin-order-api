@@ -31,9 +31,9 @@ private suspend inline fun <reified T> ApplicationCall.body(): T {
     val text = receiveText()
     return try {
         WireJson.decodeFromString<T>(text)
-    } catch (e: SerializationException) {
+    } catch (_: SerializationException) {
         throw invalidBody()
-    } catch (e: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
         throw invalidBody()
     }
 }
@@ -86,6 +86,8 @@ internal class Handlers(
             Endpoint(HttpMethod.Post, "/orders/{id}/cancel", Access.USER) { cancelOrder() },
         )
 
+    // /health answers 503 for any failure of the probe, whatever its type: the caller only needs to know it is down.
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun ApplicationCall.health() {
         try {
             io { ping() }

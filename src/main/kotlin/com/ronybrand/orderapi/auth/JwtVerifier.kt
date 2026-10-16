@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import java.security.GeneralSecurityException
 import java.security.KeyFactory
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.X509EncodedKeySpec
@@ -49,6 +50,7 @@ class JwtVerifier(key: RSAPublicKey, audience: String, issuer: String) {
      * subject, or whose subject does not fit the audit columns, is rejected; one without roles is a plain user.
      * Every failure is the same 401: neither the caller nor the client learns why a token failed.
      */
+    @Suppress("TooGenericExceptionCaught")
     fun verify(token: String): Claims =
         try {
             val decoded = verifier.verify(token)
@@ -59,7 +61,7 @@ class JwtVerifier(key: RSAPublicKey, audience: String, issuer: String) {
             Claims(subject, rolesOf(decoded.payload))
         } catch (e: AppException) {
             throw e
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // The library's message says why (expired, wrong audience...); the client must not learn it.
             throw AppException.unauthenticated()
         }
@@ -79,6 +81,9 @@ class JwtVerifier(key: RSAPublicKey, audience: String, issuer: String) {
     }
 
     companion object {
+        private fun notAPublicKey(cause: Exception) =
+            IllegalArgumentException("the JWT public key is not a PEM-encoded RSA public key", cause)
+
         /** Builds a verifier from a PEM-encoded RSA public key (`-----BEGIN PUBLIC KEY-----`). */
         fun fromPem(
             pem: String,
@@ -96,8 +101,10 @@ class JwtVerifier(key: RSAPublicKey, audience: String, issuer: String) {
                     KeyFactory
                         .getInstance("RSA")
                         .generatePublic(X509EncodedKeySpec(Base64.getMimeDecoder().decode(body))) as RSAPublicKey
-                } catch (e: Exception) {
-                    throw IllegalArgumentException("the JWT public key is not a PEM-encoded RSA public key", e)
+                } catch (e: GeneralSecurityException) {
+                    throw notAPublicKey(e)
+                } catch (e: IllegalArgumentException) {
+                    throw notAPublicKey(e)
                 }
             return JwtVerifier(key, audience, issuer)
         }

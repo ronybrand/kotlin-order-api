@@ -1,0 +1,36 @@
+# Starts from the detekt defaults (buildUponDefaultConfig); only what differs is listed, each with its reason.
+
+complexity:
+  TooManyFunctions:
+    # One handler function per endpoint and one repository function per port method is the design, not a smell. The
+    # functions that implement an interface are not counted.
+    allowedFunctionsPerClass: 20
+    allowedFunctionsPerFile: 15
+    ignoreOverridden: true
+    excludes: ["**/src/test/**", "**/src/integrationTest/**"]
+  CyclomaticComplexMethod:
+    ignoreSimpleWhenEntries: true
+
+style:
+  ThrowsCount:
+    # A validator is a list of guards that throw; only throws after the first real work count.
+    excludeGuardClauses: true
+  ReturnCount:
+    # Early returns are the idiomatic Kotlin guard clause.
+    max: 3
+    excludeGuardClauses: true
+  MagicNumber:
+    # In tests a literal is the expected value, and naming it would hide what the assertion says.
+    excludes: ["**/src/test/**", "**/src/integrationTest/**"]
+    ignoreEnums: true
+    ignoreAnnotation: true
+  MaxLineLength:
+    # ktlint owns line length for code; tests hold long string literals and expected JSON.
+    maxLineLength: 120
+    excludeCommentStatements: false
+    excludes: ["**/src/test/**", "**/src/integrationTest/**"]
+
+naming:
+  FunctionNaming:
+    # Backtick test names are the point of the test suite: they read as sentences in the report.
+    excludes: ["**/src/test/**", "**/src/integrationTest/**"]

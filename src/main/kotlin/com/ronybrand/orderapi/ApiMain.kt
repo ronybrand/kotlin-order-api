@@ -19,6 +19,7 @@ import kotlin.system.exitProcess
 
 private const val HEALTH_TIMEOUT_SECONDS = 2
 private const val SHUTDOWN_GRACE_MILLIS = 1_000L
+private const val MILLIS_PER_SECOND = 1_000L
 
 /** The API process: configuration, database, migrations, the use cases and the HTTP server, in that order. */
 object ApiMain {
@@ -62,7 +63,7 @@ object ApiMain {
         Runtime.getRuntime().addShutdownHook(
             Thread {
                 log.info("shutting down")
-                server.stop(SHUTDOWN_GRACE_MILLIS, config.shutdownTimeoutSeconds * 1000L)
+                server.stop(SHUTDOWN_GRACE_MILLIS, config.shutdownTimeoutSeconds * MILLIS_PER_SECOND)
                 publisher?.close()
                 pool.close()
             },

@@ -3,20 +3,20 @@
 build:
 	./gradlew assemble
 
-# Lint, unit tests and the coverage floor (80%). No database, no broker, no network.
+# Lint, static analysis and the unit tests: fast, no database, no broker, no network.
 test:
-	./gradlew ktlintCheck test koverVerify
+	./gradlew ktlintCheck detekt test
 
 # A real PostgreSQL (embedded, downloaded once from Maven Central); the broker test needs a Docker daemon.
 integration:
 	./gradlew integrationTest
 
 lint:
-	./gradlew ktlintCheck
+	./gradlew ktlintCheck detekt
 
-# The single local gate, same as CI.
+# The single local gate, same as CI: lint, static analysis, every test, and the 80% coverage floor.
 verify:
-	./gradlew check koverVerify
+	./gradlew ktlintCheck detekt check koverVerify
 
 # Needs a PostgreSQL: docker compose up -d postgres
 run-api:

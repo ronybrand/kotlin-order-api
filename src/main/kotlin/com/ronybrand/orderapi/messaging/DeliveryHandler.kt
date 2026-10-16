@@ -37,9 +37,12 @@ class DeliveryHandler(
 ) {
     private val log = LoggerFactory.getLogger(DeliveryHandler::class.java)
 
+    // Whatever goes wrong while moving the message (a closed channel, a timeout, a nack from the broker), the answer is
+    // the same: put the original back instead of acknowledging it.
+    @Suppress("TooGenericExceptionCaught")
     fun handle(delivery: Delivered): Outcome {
         val action = processor.process(Message(delivery.messageId, delivery.body, delivery.retries))
-        try {
+        return try {
             when (action) {
                 Action.ACK -> Unit
 
@@ -50,10 +53,11 @@ class DeliveryHandler(
 
                 Action.DEAD_LETTER -> mover.move(DLQ_NAME, delivery, delivery.retries)
             }
-        } catch (e: InterruptedException) {
+            Outcome.ACK
+        } catch (_: InterruptedException) {
             // Shutting down: leave the message for the next start.
             Thread.currentThread().interrupt()
-            return Outcome.REQUEUE
+            Outcome.REQUEUE
         } catch (e: Exception) {
             log.error(
                 "could not move message {} ({}), requeueing: {}",
@@ -61,8 +65,7 @@ class DeliveryHandler(
                 action,
                 e.javaClass.simpleName,
             )
-            return Outcome.REQUEUE
+            Outcome.REQUEUE
         }
-        return Outcome.ACK
     }
 }

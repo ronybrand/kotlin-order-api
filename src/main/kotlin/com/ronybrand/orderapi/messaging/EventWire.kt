@@ -4,9 +4,11 @@ import com.ronybrand.orderapi.domain.OrderStatus
 import com.ronybrand.orderapi.domain.OrderStatusChanged
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.math.BigDecimal
 import java.time.Instant
+import java.time.format.DateTimeParseException
 import java.util.UUID
 
 private const val MONEY_SCALE = 2
@@ -57,8 +59,13 @@ object EventWire {
                 totalAmount = BigDecimal(payload.totalAmount),
                 changedAt = Instant.parse(payload.changedAt),
             )
-        } catch (e: Exception) {
-            // Malformed JSON, a missing field, an unknown status, a bad UUID or number: all the same for the caller.
+        } catch (_: SerializationException) {
+            // Malformed JSON, a missing field or an unknown status: all the same for the caller, and retrying cannot
+            // fix it.
+            null
+        } catch (_: IllegalArgumentException) {
+            null // a bad UUID or number
+        } catch (_: DateTimeParseException) {
             null
         }
 }

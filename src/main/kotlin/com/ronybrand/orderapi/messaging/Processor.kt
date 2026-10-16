@@ -52,31 +52,57 @@ class Processor(private val notifier: Notifier, nowMillis: () -> Long = System::
     private val seen = SeenSet(SEEN_TTL_MILLIS, SEEN_CAPACITY, nowMillis)
 
     fun process(message: Message): Action {
-        val event = EventWire.decode(message.body)
-        if (event == null || event.orderId == UUID(0, 0)) {
-            log.error("discarding malformed message {}", message.id)
-            return Action.DEAD_LETTER
+        val event = EventWire.decode(message.body)?.takeIf { it.orderId != UUID(0, 0) }
+        return when {
+            event == null -> {
+                log.error("discarding malformed message {}", message.id)
+                Action.DEAD_LETTER
+            }
+
+            message.id != null && seen.has(message.id) -> {
+                log.info("duplicate message ignored: {}", message.id)
+                Action.ACK
+            }
+
+            else -> deliver(message, event)
         }
-        if (message.id != null && seen.has(message.id)) {
-            log.info("duplicate message ignored: {}", message.id)
-            return Action.ACK
-        }
+    }
+
+    // Any failure that is not permanent is transient by definition: the notifier is a boundary to the outside world,
+    // and what it throws (an I/O error, a timeout, a driver exception) says nothing the processor could act on.
+    @Suppress("TooGenericExceptionCaught")
+    private fun deliver(
+        message: Message,
+        event: OrderStatusChanged,
+    ): Action =
         try {
             notifier.notify(event)
+            message.id?.let { seen.add(it) }
+            log.info("notification sent for {}", event)
+            Action.ACK
         } catch (e: PermanentFailure) {
             log.error("notification failed permanently for {}: {}", event, e.message)
-            return Action.DEAD_LETTER
+            Action.DEAD_LETTER
         } catch (e: Exception) {
-            if (message.retries >= MAX_RETRIES) {
-                log.error("notification failed, retries exhausted for {}: {}", event, e.javaClass.simpleName)
-                return Action.DEAD_LETTER
-            }
-            log.warn("notification failed for {}, will retry ({}): {}", event, message.retries, e.javaClass.simpleName)
-            return Action.RETRY
+            retryOrDeadLetter(message, event, e)
         }
-        message.id?.let { seen.add(it) }
-        log.info("notification sent for {}", event)
-        return Action.ACK
+
+    private fun retryOrDeadLetter(
+        message: Message,
+        event: OrderStatusChanged,
+        failure: Exception,
+    ): Action {
+        if (message.retries >= MAX_RETRIES) {
+            log.error("notification failed, retries exhausted for {}: {}", event, failure.javaClass.simpleName)
+            return Action.DEAD_LETTER
+        }
+        log.warn(
+            "notification failed for {}, will retry ({}): {}",
+            event,
+            message.retries,
+            failure.javaClass.simpleName,
+        )
+        return Action.RETRY
     }
 }
 

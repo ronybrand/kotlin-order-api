@@ -26,11 +26,10 @@ jobs:
           java-version: 25
       # Caches the Gradle home and writes it only from the default branch: a pull request reads what main saved.
       - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-      - name: Lint, unit tests and the coverage floor
-        run: ./gradlew ktlintCheck test koverVerify --no-daemon
-      # Real PostgreSQL (embedded, from Maven Central) and, for the broker test, the Docker daemon of the runner.
-      - name: Integration tests
-        run: ./gradlew integrationTest --no-daemon
+      # Lint, static analysis, the unit tests and, on a real PostgreSQL (embedded, from Maven Central) and the Docker
+      # daemon of the runner, the integration tests; then the coverage floor over all of them.
+      - name: Lint, static analysis, all tests and the coverage floor
+        run: ./gradlew ktlintCheck detekt check koverVerify --no-daemon
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
         with:

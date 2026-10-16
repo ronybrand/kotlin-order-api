@@ -65,55 +65,8 @@ internal class SearchEntity(val name: String, val fields: Map<String, SearchFiel
         name: String,
         field: SearchField,
         condition: Condition,
-    ): Predicate {
-        val operator = parseOperator(condition.op.ifEmpty { "eq" }, name)
-
-        fun bad(reason: String): Nothing =
-            throw AppException.validation(
-                Codes.INVALID_FILTER,
-                reason,
-                mapOf("field" to name, "op" to operator.name.lowercase()),
-            )
-
-        fun coerced(value: Any?): Any = coerce(field, value) ?: bad(expectation(field))
-
-        fun coercedList(
-            value: Any?,
-            exactly: Int?,
-        ): List<Any> {
-            val list = value as? List<*> ?: bad("expected a list of values")
-            if (exactly != null && list.size != exactly) bad("expected exactly $exactly values")
-            return list.map { coerced(it) }
-        }
-
-        return when (operator) {
-            Operator.EQ, Operator.NEQ -> {
-                Predicate(field, operator, listOf(coerced(condition.value)))
-            }
-
-            Operator.GT, Operator.GTE, Operator.LT, Operator.LTE -> {
-                if (field.type == FieldType.ENUM) bad("ordering operators are not supported on this field")
-                Predicate(field, operator, listOf(coerced(condition.value)))
-            }
-
-            Operator.IN -> {
-                val values = coercedList(condition.value, null)
-                if (values.isEmpty() || values.size > MAX_IN_VALUES) bad("in expects between 1 and 100 values")
-                Predicate(field, operator, values)
-            }
-
-            Operator.BETWEEN -> {
-                if (field.type == FieldType.ENUM) bad("ordering operators are not supported on this field")
-                Predicate(field, operator, coercedList(condition.value, BETWEEN_VALUES))
-            }
-
-            Operator.LIKE -> {
-                if (field.type != FieldType.STRING) bad("lk is only supported on text fields")
-                val text = condition.value as? String ?: bad("lk expects a string")
-                Predicate(field, operator, listOf("%${escapeLike(text)}%"))
-            }
-        }
-    }
+    ): Predicate =
+        PredicateBuilder(name, field, parseOperator(condition.op.ifEmpty { "eq" }, name), condition.value).build()
 
     private fun parseOperator(
         raw: String,
@@ -146,11 +99,6 @@ internal class SearchEntity(val name: String, val fields: Map<String, SearchFiel
         }
 
     companion object {
-        private const val BETWEEN_VALUES = 2
-
-        /** Neutralizes the LIKE wildcards: "50%" must match the text "50%", not everything starting with 50. */
-        private fun escapeLike(text: String) = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-
         val customers =
             SearchEntity(
                 "customers",
@@ -252,3 +200,59 @@ private fun parseTime(text: String): Instant? =
             null
         }
     }
+
+private const val BETWEEN_VALUES = 2
+
+/** Neutralizes the LIKE wildcards: "50%" must match the text "50%", not everything starting with 50. */
+private fun escapeLike(text: String) = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+/** Turns one condition into a [Predicate], rejecting what does not fit the field's type as VALIDATION-05. */
+private class PredicateBuilder(
+    private val name: String,
+    private val field: SearchField,
+    private val operator: Operator,
+    private val value: Any?,
+) {
+    fun build(): Predicate =
+        when (operator) {
+            Operator.EQ, Operator.NEQ -> single()
+            Operator.GT, Operator.GTE, Operator.LT, Operator.LTE -> ordered { single() }
+            Operator.IN -> inList()
+            Operator.BETWEEN -> ordered { Predicate(field, operator, coercedList(BETWEEN_VALUES)) }
+            Operator.LIKE -> like()
+        }
+
+    private fun single() = Predicate(field, operator, listOf(coerced(value)))
+
+    private fun ordered(build: () -> Predicate): Predicate {
+        if (field.type == FieldType.ENUM) bad("ordering operators are not supported on this field")
+        return build()
+    }
+
+    private fun inList(): Predicate {
+        val values = coercedList(exactly = null)
+        if (values.isEmpty() || values.size > MAX_IN_VALUES) bad("in expects between 1 and 100 values")
+        return Predicate(field, operator, values)
+    }
+
+    private fun like(): Predicate {
+        if (field.type != FieldType.STRING) bad("lk is only supported on text fields")
+        val text = value as? String ?: bad("lk expects a string")
+        return Predicate(field, operator, listOf("%${escapeLike(text)}%"))
+    }
+
+    private fun coerced(raw: Any?): Any = coerce(field, raw) ?: bad(expectation(field))
+
+    private fun coercedList(exactly: Int?): List<Any> {
+        val list = value as? List<*> ?: bad("expected a list of values")
+        if (exactly != null && list.size != exactly) bad("expected exactly $exactly values")
+        return list.map { coerced(it) }
+    }
+
+    private fun bad(reason: String): Nothing =
+        throw AppException.validation(
+            Codes.INVALID_FILTER,
+            reason,
+            mapOf("field" to name, "op" to operator.name.lowercase()),
+        )
+}

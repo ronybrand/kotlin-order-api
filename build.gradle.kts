@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
     application
 }
 
@@ -67,7 +68,7 @@ dependencies {
 
 testing {
     suites {
-        // Unit and HTTP tests: no database, no broker, no network. This is what the coverage floor measures.
+        // Unit and HTTP tests: no database, no broker, no network.
         named<JvmTestSuite>("test") {
             useJUnitJupiter(libs.versions.junit)
         }
@@ -107,7 +108,16 @@ ktlint {
     version.set("1.8.0")
 }
 
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(file("config/detekt.yml"))
+    source.setFrom("src/main/kotlin", "src/test/kotlin", "src/integrationTest/kotlin")
+}
+
 kover {
+    // Kover measures every test task, so the 80% floor covers the unit and the integration suites together, exactly
+    // like the Go implementation, whose coverage run also has PostgreSQL and RabbitMQ. The repositories, the broker
+    // client and the SMTP mailer are only reachable through the integration suite.
     reports {
         filters.excludes {
             // Process entry points only wire the pieces together; the integration tests exercise them.

@@ -30,7 +30,10 @@ interface CustomerRepository {
 
     fun create(customer: Customer)
 
-    /** Writes the customer if its version still matches the row (CONFLICT-00 otherwise) and returns it with the next version. */
+    /**
+     * Writes the customer if its version still matches the row (CONFLICT-00 otherwise) and returns it with the next
+     * version.
+     */
     fun update(customer: Customer): Customer
 
     fun softDelete(

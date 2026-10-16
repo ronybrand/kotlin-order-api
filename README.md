@@ -82,11 +82,11 @@ A dependência aponta sempre para dentro; um teste (`ArchitectureTest`) falha se
 Requer JDK 25. Nada além disso: o PostgreSQL dos testes de integração é embarcado e baixado do Maven Central.
 
 ```sh
-make test          # ktlint, testes unitários e piso de cobertura (80%)
+make test          # ktlint, detekt e testes unitários (rápido, sem I/O)
 make integration   # PostgreSQL real (embarcado) e SMTP em processo; o teste do broker precisa de Docker
-make verify        # tudo, igual ao CI
+make verify        # tudo mais o piso de cobertura (80%), igual ao CI
 ```
 
-Os testes unitários não usam banco, broker nem rede, e o piso de cobertura mede só eles. O CI também builda as imagens (`api` e `worker`) e roda o Trivy nelas: achados HIGH ou CRITICAL com correção disponível quebram o build.
+Os testes unitários não usam banco, broker nem rede. O piso de cobertura (80%) mede os unitários e os de integração juntos, como no `go-order-api`: só a suíte unitária cobre cerca de 57% das linhas, porque os repositórios, o cliente do broker e o SMTP só são alcançados pela integração. O CI também builda as imagens (`api` e `worker`) e roda o Trivy nelas: achados HIGH ou CRITICAL com correção disponível quebram o build.
 
 `bash scripts/smoke.sh` sobe o `docker-compose.yml` inteiro (PostgreSQL, RabbitMQ, Mailpit, API e worker), assina tokens RS256 como o emissor faria, cria um cliente e um pedido, confirma o pedido e espera o e-mail chegar no Mailpit. É o único teste que exercita os dois processos dentro dos containers, e o CI o roda a cada push. Foi ele que achou o bug do vhost vazio em `amqp://host/`, que os testes de integração não viam.

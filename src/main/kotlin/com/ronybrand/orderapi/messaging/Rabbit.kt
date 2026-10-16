@@ -21,8 +21,9 @@ private const val PERSISTENT = 2
 internal fun connectionFactory(url: String) =
     ConnectionFactory().apply {
         setUri(url)
-        // amqp://host/ is the default vhost "/" for every other client, and the URL of the compose file; the Java client
-        // reads it as the empty vhost, which no broker has, and the broker closes the connection ("vhost  not found").
+        // amqp://host/ is the default vhost "/" for every other client, and the URL of the compose file; the Java
+        // client reads it as the empty vhost, which no broker has: the broker closes the connection
+        // ("vhost  not found").
         if (virtualHost.isEmpty()) virtualHost = "/"
         connectionTimeout = TIMEOUT_MILLIS
         handshakeTimeout = TIMEOUT_MILLIS
@@ -70,6 +71,7 @@ class RabbitPublisher(private val url: String) :
         channel?.takeIf { it.isOpen }?.let { return it }
         runCatching { connection?.close() }
         val newConnection = connectionFactory(url).newConnection("order-api-publisher")
+        var ready = false
         try {
             val newChannel = newConnection.createChannel()
             declareTopology(newChannel)
@@ -77,10 +79,10 @@ class RabbitPublisher(private val url: String) :
             newChannel.confirmSelect()
             connection = newConnection
             channel = newChannel
+            ready = true
             return newChannel
-        } catch (e: Exception) {
-            runCatching { newConnection.close() }
-            throw e
+        } finally {
+            if (!ready) runCatching { newConnection.close() }
         }
     }
 
@@ -137,7 +139,11 @@ class RabbitConsumer(
 ) {
     private val log = LoggerFactory.getLogger(RabbitConsumer::class.java)
 
-    /** Consumes until [stopped] is released, reconnecting after a broker failure. */
+    /**
+     * Consumes until [stopped] is released, reconnecting after a broker failure. It catches everything on purpose: a
+     * consumer that dies on the first unexpected exception is a worker that silently stops sending e-mail.
+     */
+    @Suppress("TooGenericExceptionCaught")
     fun run(stopped: CountDownLatch) {
         while (stopped.count > 0) {
             try {

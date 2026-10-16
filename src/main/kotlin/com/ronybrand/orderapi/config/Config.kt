@@ -22,7 +22,10 @@ data class DatabaseTarget(val jdbcUrl: String, val user: String? = null, val pas
     override fun toString() = "DatabaseTarget(jdbcUrl=$jdbcUrl)"
 
     companion object {
-        /** Accepts `postgres://user:pass@host:5432/db?sslmode=disable` (the format of the other implementations) or JDBC. */
+        /**
+         * Accepts `postgres://user:pass@host:5432/db?sslmode=disable` (the format of the other implementations) or
+         * JDBC.
+         */
         fun parse(raw: String): DatabaseTarget {
             if (raw.startsWith("jdbc:postgresql:")) return DatabaseTarget(raw)
             val uri = runCatching { URI(raw) }.getOrNull()

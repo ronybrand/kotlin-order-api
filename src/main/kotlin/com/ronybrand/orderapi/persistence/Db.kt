@@ -23,7 +23,8 @@ object Db {
                 user?.let { username = it }
                 password?.let { this.password = it }
                 maximumPoolSize = maxPoolSize
-                // Every use case that needs atomicity opens its own transaction; a statement outside of one commits alone.
+                // Every use case that needs atomicity opens its own transaction; a statement outside of one
+                // commits alone.
                 isAutoCommit = false
                 // A pool that hands out a broken connection turns one network blip into a failed request.
                 connectionTestQuery = "SELECT 1"
