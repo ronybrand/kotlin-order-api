@@ -63,6 +63,12 @@ jobs:
           tags: kotlin-order-api-${{ matrix.target }}:ci
           cache-from: type=gha,scope=${{ matrix.target }}
           cache-to: type=gha,mode=max,scope=${{ matrix.target }}
+      - name: Image size
+        run: |
+          size=$(docker image inspect "kotlin-order-api-${{ matrix.target }}:ci" --format '{{.Size}}')
+          compressed=$(docker save "kotlin-order-api-${{ matrix.target }}:ci" | gzip -c | wc -c)
+          echo "image size: $((size / 1024 / 1024)) MB uncompressed, about $((compressed / 1024 / 1024)) MB compressed"
+          echo "### Image size (${{ matrix.target }}): $((size / 1024 / 1024)) MB uncompressed, about $((compressed / 1024 / 1024)) MB compressed" >> "$GITHUB_STEP_SUMMARY"
       # HIGH/CRITICAL findings with a fix available fail the build; unfixed ones are only noise nobody can act on
       # yet. Covers the OS packages of the base image and the libraries inside the image.
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
