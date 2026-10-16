@@ -14,6 +14,7 @@ releases (`main` é a linha de entrega); as entradas agrupam o histórico por te
   `FOR UPDATE`/`FOR SHARE` contra a corrida entre excluir cliente e criar pedido.
 - API HTTP em Ktor: tabela única de endpoints com o acesso de cada rota, envelope de erro, JWT RS256 só de verificação, limites de taxa (por IP, por usuário e por escrita), limite de corpo que conta *chunked*, CORS por origem exata e contrato OpenAPI com teste de deriva.
 - Worker de notificação: RabbitMQ com confirmações do publisher, retry, DLQ e deduplicação, e-mail por SMTP com STARTTLS obrigatório em produção.
+- Teste de fumaça ponta a ponta da pilha do compose (`scripts/smoke.sh`), rodado no CI.
 - Dockerfile (API e worker), `docker-compose.yml`, Makefile e a verificação das imagens com Trivy no CI.
 - Testes unitários sem I/O (piso de cobertura de 80%) e de integração em PostgreSQL real embarcado.
 

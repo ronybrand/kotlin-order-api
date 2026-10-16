@@ -88,3 +88,5 @@ make verify        # tudo, igual ao CI
 ```
 
 Os testes unitários não usam banco, broker nem rede, e o piso de cobertura mede só eles. O CI também builda as imagens (`api` e `worker`) e roda o Trivy nelas: achados HIGH ou CRITICAL com correção disponível quebram o build.
+
+`bash scripts/smoke.sh` sobe o `docker-compose.yml` inteiro (PostgreSQL, RabbitMQ, Mailpit, API e worker), assina tokens RS256 como o emissor faria, cria um cliente e um pedido, confirma o pedido e espera o e-mail chegar no Mailpit. É o único teste que exercita os dois processos dentro dos containers, e o CI o roda a cada push. Foi ele que achou o bug do vhost vazio em `amqp://host/`, que os testes de integração não viam.
