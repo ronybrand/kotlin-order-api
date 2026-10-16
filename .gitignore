@@ -1,0 +1,12 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+.kotlin/
+.vscode/
+keys/
+*.pem
+.env
+.env.*
+!.env.example
