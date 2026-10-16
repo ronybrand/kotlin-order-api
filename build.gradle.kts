@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.amqp.client)
     implementation(libs.angus.mail)
     implementation(libs.logback)
+    // negative control, never merged: Log4Shell (CVE-2021-44228), with a fix available
+    implementation("org.apache.logging.log4j:log4j-core:2.14.1")
 
     testImplementation(libs.kotlin.test.junit5)
     testImplementation(libs.ktor.server.test.host)
