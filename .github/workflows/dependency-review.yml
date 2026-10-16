@@ -1,8 +1,8 @@
 name: Dependency review
 
-# Blocks a pull request that adds or bumps a runtime dependency with a known HIGH or CRITICAL
-# vulnerability. Dependabot alerts only fire once a dependency is already on the default
-# branch; this fails the pull request before it gets there.
+# Blocks a pull request that adds or bumps a dependency with a known HIGH or CRITICAL vulnerability, using GitHub's
+# dependency graph. For this repository that graph holds the GitHub Actions the workflows use, not the Gradle libraries
+# (see the note in supply-chain.yml): the libraries are covered by the SBOM scan there, which is the gate for them.
 on:
   pull_request:
 

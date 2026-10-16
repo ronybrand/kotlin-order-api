@@ -75,6 +75,8 @@ com.ronybrand.orderapi
 └── config       variáveis de ambiente e as regras de produção
 ```
 
+A imagem usa um runtime montado com `jlink` só com os módulos do JDK que o app usa (medidos com `jdeps`), sobre Alpine puro: 108 MB descomprimida e cerca de 76 MB comprimida, contra 251 MB e 104 MB da imagem com a JRE completa (mesma medição, feita no CI). Um runtime desses pode perder um módulo que só um caminho raro usa, por isso o smoke test sobe a pilha inteira com ele.
+
 A dependência aponta sempre para dentro; um teste (`ArchitectureTest`) falha se um import apontar para fora. Decisões e alternativas descartadas em [`docs/adr/`](docs/adr/README.md).
 
 ## Desenvolvimento
@@ -87,6 +89,6 @@ make integration   # PostgreSQL real (embarcado) e SMTP em processo; o teste do 
 make verify        # tudo mais o piso de cobertura (80%), igual ao CI
 ```
 
-Os testes unitários não usam banco, broker nem rede. O piso de cobertura (80%) mede os unitários e os de integração juntos, como no `go-order-api`: só a suíte unitária cobre cerca de 57% das linhas, porque os repositórios, o cliente do broker e o SMTP só são alcançados pela integração. O CI também roda o detekt, builda as imagens (`api` e `worker`) e roda o Trivy nelas, e gera o SBOM CycloneDX do classpath de runtime (`./gradlew cyclonedxDirectBom`) e o varre em busca de vulnerabilidades conhecidas, a cada mudança e toda semana: achados HIGH ou CRITICAL com correção disponível quebram o build.
+Os testes unitários não usam banco, broker nem rede. O piso de cobertura (80%) mede os unitários e os de integração juntos, como no `go-order-api`: só a suíte unitária cobre cerca de 57% das linhas, porque os repositórios, o cliente do broker e o SMTP só são alcançados pela integração. O CI também roda o detekt, builda as imagens (`api` e `worker`) e roda o Trivy nelas, e gera o SBOM CycloneDX do classpath de runtime (`./gradlew cyclonedxDirectBom`) e o varre em busca de vulnerabilidades conhecidas, a cada mudança e toda semana: achados HIGH ou CRITICAL com correção disponível quebram o build. O grafo de dependências do GitHub não lê o Gradle com catálogo de versões, então o `dependency-review` não vê as bibliotecas daqui (um PR descartável com o Log4Shell passou nele e foi barrado pelo SBOM e pela imagem); o job `submit-dependencies` envia o grafo resolvido do Gradle a partir da `main`, e é isso que faz o Dependabot enxergá-las.
 
 `bash scripts/smoke.sh` sobe o `docker-compose.yml` inteiro (PostgreSQL, RabbitMQ, Mailpit, API e worker), assina tokens RS256 como o emissor faria, cria um cliente e um pedido, confirma o pedido e espera o e-mail chegar no Mailpit. É o único teste que exercita os dois processos dentro dos containers, e o CI o roda a cada push. Foi ele que achou o bug do vhost vazio em `amqp://host/`, que os testes de integração não viam.

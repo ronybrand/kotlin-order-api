@@ -16,6 +16,7 @@ releases (`main` é a linha de entrega); as entradas agrupam o histórico por te
 - Worker de notificação: RabbitMQ com confirmações do publisher, retry, DLQ e deduplicação, e-mail por SMTP com STARTTLS obrigatório em produção.
 - Teste de fumaça ponta a ponta da pilha do compose (`scripts/smoke.sh`), rodado no CI.
 - Análise estática com detekt e varredura de vulnerabilidades do SBOM CycloneDX do classpath de runtime (a cada mudança e semanalmente).
+- Runtime mínimo com `jlink` na imagem: 108 MB (251 MB antes), 76 MB comprimida (104 MB antes).
 - Dockerfile (API e worker), `docker-compose.yml`, Makefile e a verificação das imagens com Trivy no CI.
 - Testes unitários sem I/O (piso de cobertura de 80%) e de integração em PostgreSQL real embarcado.
 

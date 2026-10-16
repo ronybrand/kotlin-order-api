@@ -15,7 +15,14 @@ RUN ./gradlew --no-daemon installDist -x test
 # run time: logging, XML, TLS to the broker, the mail server and PostgreSQL (jdk.crypto.ec), JMX and JNDI, the unsafe
 # API that Netty uses, Kerberos and SASL in the PostgreSQL driver, and the zip file system.
 FROM build AS runtime-image
-RUN set -eu;     cd build/install/kotlin-order-api;     found="$(jdeps --ignore-missing-deps --multi-release 25 --recursive --print-module-deps -cp 'lib/*' lib/kotlin-order-api-0.1.0.jar)";     echo "modules found by jdeps: $found";     jlink       --add-modules "$found,java.logging,java.xml,jdk.crypto.ec,jdk.unsupported,java.naming,java.management,java.security.jgss,java.security.sasl,jdk.zipfs,jdk.naming.dns"       --strip-debug --no-header-files --no-man-pages --compress zip-6       --output /runtime
+RUN set -eu; \
+    cd build/install/kotlin-order-api; \
+    found="$(jdeps --ignore-missing-deps --multi-release 25 --recursive --print-module-deps -cp 'lib/*' lib/kotlin-order-api-0.1.0.jar)"; \
+    echo "modules found by jdeps: $found"; \
+    jlink \
+      --add-modules "$found,java.logging,java.xml,jdk.crypto.ec,jdk.unsupported,java.naming,java.management,java.security.jgss,java.security.sasl,jdk.zipfs,jdk.naming.dns" \
+      --strip-debug --no-header-files --no-man-pages --compress zip-6 \
+      --output /runtime
 
 # Plain Alpine, the trimmed runtime and the jars; not root, and no build toolchain.
 FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
