@@ -65,25 +65,18 @@ A resposta de cliente expõe apenas `id` e `name`: documento, passaporte e e-mai
 
 ```mermaid
 flowchart LR
-    Cmd["ApiMain e o worker
-(só compõem)"]
+    Cmd["ApiMain e o worker\n(só compõem)"]
 
     subgraph Adapters["Adaptadores"]
         direction TB
-        Http["http
-(Ktor)"]
-        Pg["persistence
-(Exposed, Flyway)"]
-        Msg["messaging
-(RabbitMQ, SMTP)"]
-        Auth["auth
-(JWT RS256)"]
+        Http["http\n(Ktor)"]
+        Pg["persistence\n(Exposed, Flyway)"]
+        Msg["messaging\n(RabbitMQ, SMTP)"]
+        Auth["auth\n(JWT RS256)"]
     end
 
-    App["app
-casos de uso e ports"]
-    Domain["domain
-Customer, Order, Item"]
+    App["app\ncasos de uso e ports"]
+    Domain["domain\nCustomer, Order, Item"]
 
     Cmd -. compõe .-> Adapters
     Http -- depende de --> App
@@ -99,19 +92,14 @@ A dependência aponta sempre para dentro: o domínio não conhece nada, a aplica
 
 ```mermaid
 flowchart LR
-    Client["Cliente"] -->|HTTPS| MW["Middleware
-request id, cabeçalhos de segurança,
-CORS, limite de corpo, rate limit"]
-    MW --> Authn["JWT RS256
-+ papel"]
+    Client["Cliente"] -->|HTTPS| MW["Middleware\nrequest id, cabeçalhos de segurança,\nCORS, limite de corpo, rate limit"]
+    MW --> Authn["JWT RS256\n+ papel"]
     Authn --> Handler["Rotas e plugins (http)"]
     Handler --> Service["Serviços (app)"]
     Service --> Store["PostgresStore"]
     Store --> DB[("PostgreSQL")]
-    Service -->|"após o commit
-(best effort, sem outbox)"| Pub["Publisher RabbitMQ"]
-    Pub --> Queue[["RabbitMQ
-order.status.changed"]]
+    Service -->|"após o commit\n(best effort, sem outbox)"| Pub["Publisher RabbitMQ"]
+    Pub --> Queue[["RabbitMQ\norder.status.changed"]]
     Queue --> Worker["Worker (messaging)"]
     Worker --> Mail(["SMTP: e-mail do cliente"])
     Worker -. "retry / DLQ" .-> Queue
