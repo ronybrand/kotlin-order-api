@@ -63,6 +63,50 @@ A resposta de cliente expõe apenas `id` e `name`: documento, passaporte e e-mai
 
 ## Arquitetura
 
+```mermaid
+flowchart LR
+    Cmd["ApiMain e o worker\n(só compõem)"]
+
+    subgraph Adapters["Adaptadores"]
+        direction TB
+        Http["http\n(Ktor)"]
+        Pg["persistence\n(Exposed, Flyway)"]
+        Msg["messaging\n(RabbitMQ, SMTP)"]
+        Auth["auth\n(JWT RS256)"]
+    end
+
+    App["app\ncasos de uso e ports"]
+    Domain["domain\nCustomer, Order, Item"]
+
+    Cmd -. compõe .-> Adapters
+    Http -- depende de --> App
+    Pg -- depende de --> App
+    Msg -- depende de --> App
+    Http -- depende de --> Auth
+    App -- depende de --> Domain
+```
+
+A dependência aponta sempre para dentro: o domínio não conhece nada, a aplicação declara o que consome e os adaptadores implementam. `error` e `config` ficam de fora do desenho: o primeiro é usado por todos, o segundo só pela composição.
+
+**Uma requisição e o e-mail que ela dispara**
+
+```mermaid
+flowchart LR
+    Client["Cliente"] -->|HTTPS| MW["Middleware\nrequest id, cabeçalhos de segurança,\nCORS, limite de corpo, rate limit"]
+    MW --> Authn["JWT RS256\n+ papel"]
+    Authn --> Handler["Rotas e plugins (http)"]
+    Handler --> Service["Serviços (app)"]
+    Service --> Store["PostgresStore"]
+    Store --> DB[("PostgreSQL")]
+    Service -->|"após o commit\n(best effort, sem outbox)"| Pub["Publisher RabbitMQ"]
+    Pub --> Queue[["RabbitMQ\norder.status.changed"]]
+    Queue --> Worker["Worker (messaging)"]
+    Worker --> Mail(["SMTP: e-mail do cliente"])
+    Worker -. "retry / DLQ" .-> Queue
+```
+
+A API e o worker são dois processos independentes, ligados só pela fila. Se o broker estiver fora do ar, a transição do pedido continua válida e a falha só é registrada ([ADR sobre a ausência de outbox](docs/adr/0003-sem-outbox-transacional.md)).
+
 ```
 com.ronybrand.orderapi
 ├── error        AppException e o catálogo de códigos
