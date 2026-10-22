@@ -4,8 +4,8 @@ buildscript {
             // Build tooling only (the detekt and CycloneDX plugins), never shipped: these versions fix advisories that
             // GitHub's dependency graph reports now that Gradle's resolved graph is submitted to it, and that no direct
             // update can reach, because the plugin pins the version it brings.
-            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.3")
-            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.3")
+            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.4")
+            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.4")
             add("classpath", "org.freemarker:freemarker:2.3.35")
         }
     }
