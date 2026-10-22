@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM eclipse-temurin@sha256:1e20ead9eec7234db293f1913438090d533ed47c0b9e12dc8c7627a802a44ed6 AS build
+FROM eclipse-temurin@sha256:2d5d5e9b533342a565907c84f47a2ec298c40cde7b13a3ca85d4950fa456a641 AS build
 WORKDIR /src
 COPY gradlew ./
 COPY gradle ./gradle
