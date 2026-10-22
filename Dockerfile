@@ -29,8 +29,9 @@ RUN set -eu; \
       --output /runtime
 
 # Plain Alpine, the trimmed runtime and the jars; not root, and no build toolchain.
-# The tag rides along with the digest: it names the image the digest belongs to (Alpine 3.24), which a bare digest
-# hides from anyone reading the file and from the apk call below.
+# The tag rides along with the digest: it names the image the apk call below expects, which a bare digest hides
+# from anyone reading the file. No version in this comment: Dependabot bumps the FROM line, not the prose, so a
+# number written here would silently go stale.
 FROM alpine:3.24@sha256:71e9b7bae160ba167fa17414401b94cbcdaf3c32feeab9298bd794a2a0614c35
 # api or worker: both processes ship in the same image, the entrypoint picks one.
 ARG TARGET=api
