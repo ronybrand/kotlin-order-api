@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM eclipse-temurin:25-jdk-alpine AS build
+FROM eclipse-temurin@sha256:1e20ead9eec7234db293f1913438090d533ed47c0b9e12dc8c7627a802a44ed6 AS build
 WORKDIR /src
 COPY gradlew ./
 COPY gradle ./gradle
@@ -25,7 +25,7 @@ RUN set -eu; \
       --output /runtime
 
 # Plain Alpine, the trimmed runtime and the jars; not root, and no build toolchain.
-FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+FROM alpine@sha256:71e9b7bae160ba167fa17414401b94cbcdaf3c32feeab9298bd794a2a0614c35
 # api or worker: both processes ship in the same image, the entrypoint picks one.
 ARG TARGET=api
 ENV TARGET=${TARGET} \
