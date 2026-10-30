@@ -32,7 +32,7 @@ RUN set -eu; \
 # The tag rides along with the digest: it names the image the apk call below expects, which a bare digest hides
 # from anyone reading the file. No version in this comment: Dependabot bumps the FROM line, not the prose, so a
 # number written here would silently go stale.
-FROM alpine:3.24@sha256:71e9b7bae160ba167fa17414401b94cbcdaf3c32feeab9298bd794a2a0614c35
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 # api or worker: both processes ship in the same image, the entrypoint picks one.
 ARG TARGET=api
 ENV TARGET=${TARGET} \
