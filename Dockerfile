@@ -3,7 +3,7 @@
 # from the musl (Alpine) variant of the JDK. A runtime built from the glibc one has no ELF interpreter on
 # Alpine and the container dies with "java: not found". The bare eclipse-temurin:latest tag has pointed at
 # both variants (same JDK, different base OS), so naming the Alpine tag keeps a retag from breaking the image.
-FROM eclipse-temurin:25-jdk-alpine@sha256:1e20ead9eec7234db293f1913438090d533ed47c0b9e12dc8c7627a802a44ed6 AS build
+FROM eclipse-temurin:25-jdk-alpine@sha256:c7c3d0bdf7f2bbc5a05a6712ed334d198360105634ea9adf76fca94f381b1e3f AS build
 WORKDIR /src
 COPY gradlew ./
 COPY gradle ./gradle
@@ -32,7 +32,7 @@ RUN set -eu; \
 # The tag rides along with the digest: it names the image the apk call below expects, which a bare digest hides
 # from anyone reading the file. No version in this comment: Dependabot bumps the FROM line, not the prose, so a
 # number written here would silently go stale.
-FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 # api or worker: both processes ship in the same image, the entrypoint picks one.
 ARG TARGET=api
 ENV TARGET=${TARGET} \
