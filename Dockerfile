@@ -3,7 +3,7 @@
 # from the musl (Alpine) variant of the JDK. A runtime built from the glibc one has no ELF interpreter on
 # Alpine and the container dies with "java: not found". The bare eclipse-temurin:latest tag has pointed at
 # both variants (same JDK, different base OS), so naming the Alpine tag keeps a retag from breaking the image.
-FROM eclipse-temurin:25-jdk-alpine@sha256:c7c3d0bdf7f2bbc5a05a6712ed334d198360105634ea9adf76fca94f381b1e3f AS build
+FROM eclipse-temurin:25-jdk-alpine@sha256:22edbb1021420ae6e248519d1af07577742314d67d4c60fcbb2e285b7e47fa78 AS build
 WORKDIR /src
 COPY gradlew ./
 COPY gradle ./gradle
